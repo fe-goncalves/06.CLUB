@@ -24,11 +24,13 @@ Este app **não** é site estático. **Não** use a predefinição React/Vite ne
 2. Build command: `npx opennextjs-cloudflare build`
 3. Deploy command: `npx wrangler deploy` (ou use o fluxo automático do OpenNext se o painel oferecer)
 4. Branch: `main`
-5. Env vars (Production):
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `NEXT_PUBLIC_R2_PUBLIC_URL`
-   - `NEXT_PUBLIC_SITE_URL`
+5. Env vars — **duas vezes** (muito importante):
+   - **Build variables and secrets** (Settings do build)
+   - **Variables and secrets** do Worker (runtime)
+   - As 4: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_R2_PUBLIC_URL`, `NEXT_PUBLIC_SITE_URL`
+6. Deploy command: `npx opennextjs-cloudflare deploy -- --keep-vars`  
+   (o `--keep-vars` evita apagar as variáveis do painel a cada deploy)
+7. Depois de salvar as vars, rode um **novo deploy**
 
 ### Opção B — CLI
 

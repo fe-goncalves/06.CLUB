@@ -35,7 +35,7 @@ function isMissingPublicCode(error: { message?: string } | null) {
 
 export async function getRecentMatches(limit = 40) {
   return cached(`matches:recent:${limit}`, 45_000, async () => {
-    const sb = getSupabase();
+    const sb = await getSupabase();
     let res: any = await sb
       .from("matches")
       .select(MATCH_LIST_SELECT)
@@ -58,7 +58,7 @@ export async function getRecentMatches(limit = 40) {
 export async function getMatchByRef(ref: { kind: "uuid" | "code"; value: string }) {
   const key = `match:${ref.kind}:${ref.value}`;
   return cached(key, 30_000, async () => {
-    const sb = getSupabase();
+    const sb = await getSupabase();
 
     if (ref.kind === "code") {
       const res: any = await sb
@@ -92,7 +92,7 @@ export async function getMatchByRef(ref: { kind: "uuid" | "code"; value: string 
 
 export async function getCompetitions() {
   return cached("competitions:all", 90_000, async () => {
-    const sb = getSupabase();
+    const sb = await getSupabase();
     const { data, error } = await sb
       .from("competitions")
       .select("id, name, slug, logo_url, brand_color, short_name, season, is_active")
@@ -106,7 +106,7 @@ export async function getCompetitions() {
 
 export async function getCompetitionById(id: string) {
   return cached(`competition:${id}`, 90_000, async () => {
-    const sb = getSupabase();
+    const sb = await getSupabase();
     const { data, error } = await sb
       .from("competitions")
       .select("id, name, slug, logo_url, brand_color, short_name, season")
@@ -119,7 +119,7 @@ export async function getCompetitionById(id: string) {
 
 export async function getMatchesByCompetition(competitionId: string) {
   return cached(`matches:comp:${competitionId}`, 45_000, async () => {
-    const sb = getSupabase();
+    const sb = await getSupabase();
     let res: any = await sb
       .from("matches")
       .select(MATCH_LIST_SELECT)
@@ -141,7 +141,7 @@ export async function getMatchesByCompetition(competitionId: string) {
 
 export async function getTeams() {
   return cached("teams:all", 90_000, async () => {
-    const sb = getSupabase();
+    const sb = await getSupabase();
     const { data, error } = await sb
       .from("teams")
       .select("id, name, slug, logo_url, brand_color, short_name, abbreviation")
@@ -153,7 +153,7 @@ export async function getTeams() {
 
 export async function getTeamById(id: string) {
   return cached(`team:${id}`, 90_000, async () => {
-    const sb = getSupabase();
+    const sb = await getSupabase();
     const { data, error } = await sb
       .from("teams")
       .select("id, name, slug, logo_url, brand_color, short_name, abbreviation")
@@ -167,7 +167,7 @@ export async function getTeamById(id: string) {
 export async function getMatchesByTeam(teamId: string) {
   if (!/^[0-9a-f-]{36}$/i.test(teamId)) return [];
   return cached(`matches:team:${teamId}`, 45_000, async () => {
-    const sb = getSupabase();
+    const sb = await getSupabase();
     let res: any = await sb
       .from("matches")
       .select(MATCH_LIST_SELECT)
