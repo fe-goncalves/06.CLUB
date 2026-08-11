@@ -16,15 +16,15 @@ npm run dev
 Rode no SQL Editor do Supabase: `sql/001_match_public_code.sql`  
 Sem isso, links `/m/XXXXX` (5 chars) não resolvem; UUID em `/m/<uuid>` ainda funciona.
 
-## Deploy (Cloudflare Pages)
+### Cloudflare Pages — Build settings
 
-1. Conecte este repositório
-2. Framework: Next.js (ou OpenNext Cloudflare em produção)
-3. Env vars:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `NEXT_PUBLIC_R2_PUBLIC_URL`
-   - `NEXT_PUBLIC_SITE_URL`
+- **Framework preset:** Next.js (or None)
+- **Build command:** `npm run build`
+- **Install command:** `npm ci` (ou `npm install` se o ci falhar)
+- **Deploy / Production branch:** `main`
+- Não use “Retry” de um deploy antigo: crie um **novo deploy** do último commit de `main`.
+
+Env vars: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_R2_PUBLIC_URL`, `NEXT_PUBLIC_SITE_URL`
 
 ### Segurança no Cloudflare (recomendado)
 
