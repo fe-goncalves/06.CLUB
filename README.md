@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 06CLUB — Site público
 
-## Getting Started
+Next.js (App Router) + Supabase + R2. Visitante: assistir, baixar e compartilhar. Sem login/upload.
 
-First, run the development server:
+## Setup local
 
 ```bash
+cp .env.example .env.local
+# Preencha as variáveis (mesmas do app Expo, prefixo NEXT_PUBLIC_)
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Banco
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Rode no SQL Editor do Supabase: `sql/001_match_public_code.sql`  
+Sem isso, links `/m/XXXXX` (5 chars) não resolvem; UUID em `/m/<uuid>` ainda funciona.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Deploy (Cloudflare Pages)
 
-## Learn More
+1. Conecte este repositório
+2. Framework: Next.js (ou OpenNext Cloudflare em produção)
+3. Env vars:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `NEXT_PUBLIC_R2_PUBLIC_URL`
+   - `NEXT_PUBLIC_SITE_URL`
 
-To learn more about Next.js, take a look at the following resources:
+### Segurança no Cloudflare (recomendado)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Bot Fight Mode / Super Bot Fight
+- Rate Limiting nas rotas `/m/*` (ex.: 60 req/min por IP)
+- WAF managed rules
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Segurança no app (já incluso)
 
-## Deploy on Vercel
+- Headers: CSP, X-Frame-Options, nosniff, COOP, Permissions-Policy
+- Middleware: rate limit básico + bloqueio de paths suspeitos
+- Download: apenas HTTPS + cooldown no client
+- Sem `service_role` / secrets de escrita no front
+- `.env*` fora do git (só `.env.example`)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Escopo
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Este site **não** substitui o app admin (upload de vídeos). Admin remoto = build EAS (APK/TestFlight), não Expo Go em LAN.
