@@ -6,40 +6,44 @@ Next.js (App Router) + Supabase + R2. Visitante: assistir, baixar e compartilhar
 
 ```bash
 cp .env.example .env.local
-# Preencha as variáveis (mesmas do app Expo, prefixo NEXT_PUBLIC_)
 npm install
 npm run dev
 ```
 
 ## Banco
 
-Rode no SQL Editor do Supabase: `sql/001_match_public_code.sql`  
-Sem isso, links `/m/XXXXX` (5 chars) não resolvem; UUID em `/m/<uuid>` ainda funciona.
+Rode no SQL Editor do Supabase: `sql/001_match_public_code.sql`
 
-### Cloudflare Pages — Build settings
+## Deploy no Cloudflare (Next.js = Workers + OpenNext)
 
-- **Framework preset:** Next.js (or None)
-- **Build command:** `npm run build`
-- **Install command:** `npm ci` (ou `npm install` se o ci falhar)
-- **Deploy / Production branch:** `main`
-- Não use “Retry” de um deploy antigo: crie um **novo deploy** do último commit de `main`.
+Este app **não** é site estático. **Não** use a predefinição React/Vite nem Output directory `.next` no Pages clássico (isso causa o erro de arquivo > 25 MiB).
 
-Env vars: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_R2_PUBLIC_URL`, `NEXT_PUBLIC_SITE_URL`
+### Opção A — Workers (recomendado)
 
-### Segurança no Cloudflare (recomendado)
+1. Cloudflare Dashboard → **Workers & Pages** → Create → **Worker** conectado ao GitHub `fe-goncalves/06.CLUB`
+2. Build command: `npx opennextjs-cloudflare build`
+3. Deploy command: `npx wrangler deploy` (ou use o fluxo automático do OpenNext se o painel oferecer)
+4. Branch: `main`
+5. Env vars (Production):
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `NEXT_PUBLIC_R2_PUBLIC_URL`
+   - `NEXT_PUBLIC_SITE_URL`
 
-- Bot Fight Mode / Super Bot Fight
-- Rate Limiting nas rotas `/m/*` (ex.: 60 req/min por IP)
+### Opção B — CLI
+
+```bash
+# login uma vez
+npx wrangler login
+npm run deploy
+```
+
+### Segurança Cloudflare (recomendado)
+
+- Bot Fight Mode
+- Rate Limiting em `/m/*`
 - WAF managed rules
 
-### Segurança no app (já incluso)
+### Já incluso no app
 
-- Headers: CSP, X-Frame-Options, nosniff, COOP, Permissions-Policy
-- Middleware: rate limit básico + bloqueio de paths suspeitos
-- Download: apenas HTTPS + cooldown no client
-- Sem `service_role` / secrets de escrita no front
-- `.env*` fora do git (só `.env.example`)
-
-## Escopo
-
-Este site **não** substitui o app admin (upload de vídeos). Admin remoto = build EAS (APK/TestFlight), não Expo Go em LAN.
+- CSP / headers, middleware rate-limit, download só HTTPS, sem service_role no front
