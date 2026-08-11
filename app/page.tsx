@@ -1,9 +1,13 @@
 import { HomeTopBar } from "@/components/home/HomeTopBar";
 import { MatchCard } from "@/components/match/MatchCard";
+import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import { brandMetadata } from "@/lib/meta";
 import { getRecentMatches } from "@/lib/queries";
 import type { MatchListItem } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+
+export const metadata = brandMetadata("HOME");
 
 export default async function HomePage() {
   let matches: MatchListItem[] = [];
@@ -11,8 +15,9 @@ export default async function HomePage() {
 
   try {
     matches = await getRecentMatches(40);
-  } catch {
-    error = "Não foi possível carregar os jogos.";
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "erro desconhecido";
+    error = `Não foi possível carregar os jogos. (${msg})`;
   }
 
   return (
@@ -29,8 +34,10 @@ export default async function HomePage() {
           </p>
         ) : null}
 
-        {matches.map((match) => (
-          <MatchCard key={match.id} match={match} />
+        {matches.map((match, i) => (
+          <ScrollReveal key={match.id} delayMs={Math.min(i * 35, 280)}>
+            <MatchCard match={match} />
+          </ScrollReveal>
         ))}
       </section>
     </main>

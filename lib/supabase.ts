@@ -2,33 +2,22 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 let client: SupabaseClient | null = null;
 
-function readEnv(name: string): string | undefined {
-  const fromProcess = process.env[name]?.trim();
-  if (fromProcess) return fromProcess;
+function env(name: string): string | undefined {
+  const v = process.env[name];
+  if (typeof v === "string" && v.trim()) return v.trim();
   return undefined;
 }
 
-async function readEnvAsync(name: string): Promise<string | undefined> {
-  const sync = readEnv(name);
-  if (sync) return sync;
-  try {
-    const { getCloudflareContext } = await import("@opennextjs/cloudflare");
-    const ctx = await getCloudflareContext({ async: true });
-    const fromCf = (ctx?.env as Record<string, string | undefined> | undefined)?.[name];
-    return fromCf?.trim() || undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-export async function getSupabase() {
+export function getSupabase() {
   if (client) return client;
 
-  const url = await readEnvAsync("NEXT_PUBLIC_SUPABASE_URL");
-  const key = await readEnvAsync("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+  const url = env("NEXT_PUBLIC_SUPABASE_URL");
+  const key = env("NEXT_PUBLIC_SUPABASE_ANON_KEY");
 
   if (!url || !key) {
-    throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
+    throw new Error(
+      `Missing Supabase env (url=${url ? "ok" : "missing"}, key=${key ? "ok" : "missing"})`,
+    );
   }
 
   client = createClient(url, key, {
@@ -36,6 +25,9 @@ export async function getSupabase() {
       persistSession: false,
       autoRefreshToken: false,
       detectSessionInUrl: false,
+    },
+    global: {
+      fetch: (...args: Parameters<typeof fetch>) => fetch(...args),
     },
   });
 

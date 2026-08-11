@@ -13,5 +13,11 @@
       "binding": "WORKER_SELF_REFERENCE",
       "service": "06-club"
     }
-  ]
+  ],
+  "vars": {
+    "NEXT_PUBLIC_SUPABASE_URL": "https://amthsigtrcfkcnvyrqng.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtdGhzaWd0cmNma2NudnlycW5nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0ODMwMTMsImV4cCI6MjA5NjA1OTAxM30.1rJlx8qcB6inGa7FAYsZav1hiT_ljK1Fs6zZ1dvpsrc",
+    "NEXT_PUBLIC_R2_PUBLIC_URL": "https://pub-5c293a205f194c2e8a98cc4a18992f29.r2.dev",
+    "NEXT_PUBLIC_SITE_URL": "https://06-club.provedordehospedagem5616.workers.dev"
+  }
 }
