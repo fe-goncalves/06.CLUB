@@ -43,6 +43,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className={inter.variable}>
+      <head>
+        <link rel="preconnect" href="https://pub-5c293a205f194c2e8a98cc4a18992f29.r2.dev" />
+        <link rel="dns-prefetch" href="https://pub-5c293a205f194c2e8a98cc4a18992f29.r2.dev" />
+        <link rel="preconnect" href="https://amthsigtrcfkcnvyrqng.supabase.co" />
+        <link rel="dns-prefetch" href="https://amthsigtrcfkcnvyrqng.supabase.co" />
+      </head>
       <body className="min-h-dvh bg-black text-[#EEEEEE] antialiased">
         <div className="mx-auto min-h-dvh w-full max-w-lg pb-28">{children}</div>
         <BottomNav />

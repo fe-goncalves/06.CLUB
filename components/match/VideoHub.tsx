@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { IconDownload, IconShare, IconVoltar } from "@/components/ui/Icons";
+import { MediaImg } from "@/components/ui/MediaImg";
 import {
   canDownloadVideo,
   downloadVideoFile,
@@ -15,7 +16,7 @@ import {
   videoSharePath,
 } from "@/lib/format";
 import { siteUrl } from "@/lib/site";
-import { downloadUrl, playbackUrl, warmVideoCache } from "@/lib/videoPlayback";
+import { downloadUrl, playbackUrl, warmVideoHint } from "@/lib/videoPlayback";
 import type { MatchDetail, VideoItem } from "@/lib/types";
 
 export function VideoHub({
@@ -51,12 +52,14 @@ export function VideoHub({
   }, [startIndex]);
 
   useEffect(() => {
-    const current = videos[activeIndex];
     const next = videos[activeIndex + 1];
-    const prev = videos[activeIndex - 1];
-    if (current) void warmVideoCache(playbackUrl(current));
-    if (next) void warmVideoCache(playbackUrl(next));
-    if (prev) void warmVideoCache(playbackUrl(prev));
+    if (next?.thumbnail_url) {
+      const img = new Image();
+      img.decoding = "async";
+      img.src = next.thumbnail_url;
+    }
+    // Só hint leve do próximo vídeo — nunca baixar .mov inteiro em cache
+    if (next) warmVideoHint(playbackUrl(next));
   }, [activeIndex, videos]);
 
   function flash(msg: string) {
@@ -84,7 +87,6 @@ export function VideoHub({
             video={video}
             index={index}
             match={match}
-            active={Math.abs(index - activeIndex) <= 1}
             isCurrent={index === activeIndex}
             onBecomeActive={() => setActiveIndex(index)}
             onToast={flash}
@@ -105,7 +107,6 @@ function ReelSlide({
   video,
   index,
   match,
-  active,
   isCurrent,
   onBecomeActive,
   onToast,
@@ -113,12 +114,12 @@ function ReelSlide({
   video: VideoItem;
   index: number;
   match: MatchDetail;
-  active: boolean;
   isCurrent: boolean;
   onBecomeActive: () => void;
   onToast: (msg: string) => void;
 }) {
   const ref = useRef<HTMLVideoElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const [paused, setPaused] = useState(false);
   const [holding, setHolding] = useState(false);
   const holdTimer = useRef<number | null>(null);
@@ -126,36 +127,29 @@ function ReelSlide({
   const src = playbackUrl(video);
 
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
+    const section = sectionRef.current;
+    if (!section) return;
     const io = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && entry.intersectionRatio > 0.7) {
+        if (entry.isIntersecting && entry.intersectionRatio > 0.65) {
           onBecomeActive();
-          if (active || isCurrent) {
-            el.play().catch(() => {});
-            setPaused(false);
-          }
-        } else {
-          el.pause();
         }
       },
-      { threshold: [0.7] },
+      { threshold: [0.65] },
     );
-    io.observe(el);
+    io.observe(section);
     return () => io.disconnect();
-  }, [active, isCurrent, onBecomeActive]);
+  }, [onBecomeActive]);
 
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
-    if (isCurrent) {
-      el.play().catch(() => {});
-      setPaused(false);
-    } else {
+    if (!el || !isCurrent) return;
+    el.play().catch(() => {});
+    setPaused(false);
+    return () => {
       el.pause();
-    }
-  }, [isCurrent]);
+    };
+  }, [isCurrent, src]);
 
   const clearHold = useCallback(() => {
     if (holdTimer.current) {
@@ -216,8 +210,11 @@ function ReelSlide({
   }
 
   return (
-    <section className="relative h-dvh w-full snap-start snap-always bg-black">
-      {active ? (
+    <section
+      ref={sectionRef}
+      className="relative h-dvh w-full snap-start snap-always bg-black"
+    >
+      {isCurrent ? (
         <video
           ref={ref}
           src={src}
@@ -225,8 +222,7 @@ function ReelSlide({
           className="h-full w-full object-cover"
           playsInline
           loop
-          muted={false}
-          preload={isCurrent ? "auto" : "metadata"}
+          preload="auto"
           controls={false}
           onClick={onTap}
           onContextMenu={(e) => e.preventDefault()}
@@ -235,16 +231,23 @@ function ReelSlide({
           onPointerCancel={clearHold}
           onPointerLeave={clearHold}
         />
-      ) : (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={video.thumbnail_url || ""}
-          alt=""
+      ) : video.thumbnail_url ? (
+        <MediaImg
+          src={video.thumbnail_url}
           className="h-full w-full object-cover"
         />
+      ) : (
+        <div className="flex h-full items-center justify-center gap-6 bg-[#0a0a0a]">
+          {match.home_team.logo_url ? (
+            <MediaImg src={match.home_team.logo_url} className="h-20 w-20 object-contain opacity-70" />
+          ) : null}
+          {match.away_team.logo_url ? (
+            <MediaImg src={match.away_team.logo_url} className="h-20 w-20 object-contain opacity-70" />
+          ) : null}
+        </div>
       )}
 
-      {paused ? (
+      {paused && isCurrent ? (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <span className="font-inter rounded-full bg-black/40 px-3 py-1 text-xs text-[#EEEEEE]">
             Pausado
@@ -258,24 +261,26 @@ function ReelSlide({
         </div>
       ) : null}
 
-      <div className="absolute bottom-14 right-3 flex flex-col gap-6">
-        <button
-          type="button"
-          onClick={onDownload}
-          aria-label="Baixar"
-          className="flex h-16 w-16 items-center justify-center text-[#EEEEEE]"
-        >
-          <IconDownload size={40} />
-        </button>
-        <button
-          type="button"
-          onClick={onShare}
-          aria-label="Compartilhar"
-          className="flex h-16 w-16 items-center justify-center text-[#EEEEEE]"
-        >
-          <IconShare size={38} />
-        </button>
-      </div>
+      {isCurrent ? (
+        <div className="absolute bottom-14 right-3 flex flex-col gap-6">
+          <button
+            type="button"
+            onClick={onDownload}
+            aria-label="Baixar"
+            className="flex h-16 w-16 items-center justify-center text-[#EEEEEE]"
+          >
+            <IconDownload size={40} />
+          </button>
+          <button
+            type="button"
+            onClick={onShare}
+            aria-label="Compartilhar"
+            className="flex h-16 w-16 items-center justify-center text-[#EEEEEE]"
+          >
+            <IconShare size={38} />
+          </button>
+        </div>
+      ) : null}
     </section>
   );
 }

@@ -13,18 +13,21 @@ export function downloadUrl(video: {
   return video.r2_url_original || video.r2_url;
 }
 
-const CACHE_NAME = "06club-video-v1";
-
-/** Prefetch + Cache API para o próximo scroll ficar fluido. */
-export async function warmVideoCache(url: string) {
-  if (typeof window === "undefined" || !url || !("caches" in window)) return;
+/**
+ * Prefetch leve: só abre conexão / metadados, sem baixar o arquivo inteiro.
+ * (Antes fazíamos fetch completo de .mov ~14MB — isso travava a rede.)
+ */
+export function warmVideoHint(url: string) {
+  if (typeof document === "undefined" || !url) return;
   try {
-    const cache = await caches.open(CACHE_NAME);
-    const hit = await cache.match(url);
-    if (hit) return;
-    const res = await fetch(url, { mode: "cors", credentials: "omit", cache: "force-cache" });
-    if (res.ok) await cache.put(url, res.clone());
+    const link = document.createElement("link");
+    link.rel = "preload";
+    link.as = "video";
+    link.href = url;
+    link.setAttribute("fetchpriority", "low");
+    document.head.appendChild(link);
+    window.setTimeout(() => link.remove(), 12_000);
   } catch {
-    // ignore network/CORS
+    // ignore
   }
 }

@@ -6,6 +6,7 @@ import {
 } from "@/lib/format";
 import type { MatchListItem } from "@/lib/types";
 import { IconVideos } from "@/components/ui/Icons";
+import { MediaImg } from "@/components/ui/MediaImg";
 
 function Logo({
   url,
@@ -18,15 +19,13 @@ function Logo({
 }) {
   if (url) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
+      <MediaImg
         src={url}
         alt={name}
         width={size}
         height={size}
         className="object-contain"
         style={{ width: size, height: size }}
-        loading="lazy"
       />
     );
   }

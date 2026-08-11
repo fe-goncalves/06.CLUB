@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ActionIcon, IconSelect, IconShare, IconVoltar } from "@/components/ui/Icons";
+import { MediaImg } from "@/components/ui/MediaImg";
 import {
   canDownloadVideo,
   downloadVideoFile,
@@ -32,8 +33,15 @@ function TeamLogo({
 }) {
   const name = displayShortName(team);
   const img = team.logo_url ? (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={team.logo_url} alt={name} style={{ width: size, height: size }} className="object-contain" />
+    <MediaImg
+      src={team.logo_url}
+      alt={name}
+      width={size}
+      height={size}
+      className="object-contain"
+      style={{ width: size, height: size }}
+      priority
+    />
   ) : (
     <span
       className="font-space flex items-center justify-center text-sm font-bold text-[#EEEEEE]/60"
